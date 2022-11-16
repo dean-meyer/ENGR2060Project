@@ -1,146 +1,203 @@
-function [ ] = decay (nucliide, startingActy, timeDur)
+function [ ] = decay (nucliide, startingActy, timeDur, fullDecay, probDecay)
 
+% Initial setup
+finalamnt = [];
 
-finalAmnt = [];
+% Need to create the figures to clear them at the start of the function
+yek=figure(1);
+yek2=figure(2);
+clf(yek);
+clf(yek2);
 
+set(yek,'visible','off')
+set(yek2,'visible','off')
 
-%{
- Come back to this later, trying to read the halflife from the structure
- rather than using if statements. The if statements do at least work
- though...
-%}
+% Let's do some basic error checking...
 
-% for inuc=1:length(nucliides)
-%     if(strcmpi(nucliide,nucc(inuc).symbol))
-%         finalamnt = startingacty*exp(-(log(2)/nucc(inuc).halflife)*timedur);
-%         break;
-%     end
-% end
+% Check if user didn't select a decay simulation type
+if (strcmpi(fullDecay,'no')==1 && strcmpi(probDecay,'no')==1)
+    warndlg(['You did not select a type of decay to model. You must ' ...
+        'select at least one decay type option.'],'Warning');
 
-if (strcmpi(nucliide,'SM137')==1)
-    % activity calculation
-    finalAmnt = startingActy*exp(-(log(2)/45)*timeDur);
-    fprintf('The final activity of %s is %.3e.\n',nucliide,finalAmnt)
-    
-    % figure generation
-    lg=2;
-    tpnt=[0 0];
-    bpnt=[0 -1];
-    
-    
-    figure(1);
-    axis([-0.25 0.25 -6.25 0.5]);
-    title '137Sm';
-    hold on;
-    
-    plot([tpnt(1) bpnt(1)],...
-        [tpnt(2) 0.64*bpnt(2)],...
-        'k','LineWidth', 2);
-    plot([tpnt(1) bpnt(1)],...
-        [bpnt(2) 1.64*bpnt(2)],...
-        'k','LineWidth', 2);
-    plot([tpnt(1) bpnt(1)],...
-        [2*bpnt(2) 2.64*bpnt(2)],...
-        'k','LineWidth', 2);
-    plot([tpnt(1) bpnt(1)],...
-        [3*bpnt(2) 3.64*bpnt(2)],...
-        'k','LineWidth', 2);
-    plot([tpnt(1) bpnt(1)],...
-        [4*bpnt(2) 4.64*bpnt(2)],...
-        'k','LineWidth', 2);
-    plot([tpnt(1) bpnt(1)],...
-        [5*bpnt(2) 5.64*bpnt(2)],...
-        'k','LineWidth', 2);
-    
-    hold off;
-    
-    text((-0.03+tpnt(1)),(0.2+tpnt(2)),'137Sm','FontSize', 12, 'FontWeight', 'bold');
-    text((-0.03+tpnt(1)),(0.2+bpnt(2)),'137Pm','FontSize', 12, 'FontWeight', 'bold');
-    text((-0.03+tpnt(1)),2.25*(0.2+bpnt(2)),'137Nd','FontSize', 12, 'FontWeight', 'bold');
-    text((-0.03+tpnt(1)),3.49*(0.2+bpnt(2)),'137Pr','FontSize', 12, 'FontWeight', 'bold');
-    text((-0.03+tpnt(1)),4.74*(0.2+bpnt(2)),'137Ce','FontSize', 12, 'FontWeight', 'bold');
-    text((-0.03+tpnt(1)),5.99*(0.2+bpnt(2)),'137La','FontSize', 12, 'FontWeight', 'bold');
-    text((-0.03+tpnt(1)),7.25*(0.2+bpnt(2)),'137Ba','FontSize', 12, 'FontWeight', 'bold');
-elseif (strcmpi(nucliide,'I137')==1)
-    % activity calculation
-    finalAmnt = startingActy*exp(-(log(2)/24.5)*timeDur);
-    fprintf('The final activity of %s is %.3e.\n',nucliide,finalAmnt)
-    
-    % figure generation
-    lg=2;
-    tpnt=[0 0];
-    bpnt=[0 -lg]; 
-    yek=figure(1);
-    set(yek,'Name','Iodine 137 Decay Chart','NumberTitle','off')
-    axis([-0.5 1.5 -6 0.5]);
-    hold on;
+% Check if the user entered a simulation time less than 1 second
+elseif (timeDur < 1)
+    warndlg(['You entered a simulation time of less than 1 second.' ...
+        'You should enter a longer simulation time.'],'Warning');
 
-    plot([tpnt(1) bpnt(1)], ...
-        [tpnt(2) 0.75*bpnt(2)], ...
-        'k','LineWidth',2);
-    plot([tpnt(1) bpnt(1)], ...
-        [bpnt(2) 1.75*bpnt(2)], ...
-        'k','LineWidth',2);
-    plot([tpnt(1) bpnt(1)], ...
-        [2*bpnt(2) 2.75*bpnt(2)], ...
-        'k','LineWidth',2);
-    plot([tpnt(1) -0.5*(bpnt(2))], ...
-        [tpnt(2) 0.75*bpnt(2)], ...
-        'k','LineWidth',2);
-    plot([-0.5*(bpnt(2)) -0.5*(bpnt(2))], ...
-        [bpnt(2) 1.75*bpnt(2)], ...
-        'k','LineWidth',2);
-    hold off;
-    
-    text((-0.06+tpnt(1)),(0.18+tpnt(2)),'137I','FontSize',14,'FontWeight','bold');
-    text((-0.06+tpnt(1)),(0.25+bpnt(2)),'137Xe','FontSize',14,'FontWeight','bold');
-    text((-0.06+tpnt(1)),2.15*(0.25+bpnt(2)),'137Cs','FontSize',14,'FontWeight','bold');
-    text((-0.06+tpnt(1)),3.25*(0.25+bpnt(2)),'137Ba','FontSize',14,'FontWeight','bold');
-    text((0.94+tpnt(1)),(0.25+bpnt(2)),'136Xe','FontSize',14,'FontWeight','bold');
-    text((0.96+tpnt(1)),2.15*(0.25+bpnt(2)),'136Ba','FontSize',14,'FontWeight','bold');
+% Check if the user entered a starting activity of 0.
+elseif (startingActy == 0)
+    warndlg(['You selected a Starting Activity Level of 0.' ...
+        'You should select a larger value']);
 
-elseif (strcmpi(nucliide,'I138')==1)
-    % activity calculation
-    finalAmnt = startingActy*exp(-(log(2)/6.23)*timeDur);
-    fprintf('The final activity of %s is %.3e.\n',nucliide,finalAmnt)
+% Now we start going through the simulation
+
+% User selected full decay and no probabilistic decay
+elseif (strcmpi(fullDecay,'yes')==1 && strcmpi(probDecay,'no')==1)
+    set(yek,'Visible','on');
+    % Sm137, full decay
+    if (strcmpi(nucliide,'SM137')==1)
+        % activity calculation
+        finalamnt = startingActy*exp(-(log(2)/45)*timeDur);
+        msgbox(sprintf('The final activity of %s is %.3e.\n', ...
+            nucliide,finalamnt),'Final Activity');
+
+        % call the figure from its script
+        Sm137Figure;
     
-    % figure generation
-    lg=2;
-    tpnt=[0 0];
-    bpnt=[0 -lg];
-    yek=figure(1);
-    set(yek,'Name','Iodine 138 Decay Chart','NumberTitle','off')
-    axis([-0.5 1.5 -6.1 0.5]);
-    hold on;
-    plot([tpnt(1) bpnt(1)], ...
-        [tpnt(2) 0.75*bpnt(2)], ...
-        'k','LineWidth',2);
-    plot([tpnt(1) bpnt(1)], ...
-        [bpnt(2) 1.75*bpnt(2)], ...
-        'k','LineWidth',2);
-    plot([tpnt(1) bpnt(1)], ...
-        [2*bpnt(2) 2.75*bpnt(2)], ...
-        'k','LineWidth',2);
-    plot([tpnt(1) -0.5*(bpnt(2))], ...
-        [tpnt(2) 0.75*bpnt(2)], ...
-        'k','LineWidth',2);
-    plot([-0.5*(bpnt(2)) -0.5*(bpnt(2))], ...
-        [bpnt(2) 1.75*bpnt(2)], ...
-        'k','LineWidth',2);
-    plot([-0.5*(bpnt(2)) -0.5*(bpnt(2))], ...
-        [2*bpnt(2) 2.75*bpnt(2)], ...
-        'k','LineWidth',2);
-    hold off;
+    % I137, full decay
+    elseif (strcmpi(nucliide,'I137')==1)
+        % activity calculation
+        finalamnt = startingActy*exp(-(log(2)/24.5)*timeDur);
+        msgbox(sprintf('The final activity of %s is %.3e.\n', ...
+            nucliide,finalamnt),'Final Activity');
+        
+        % call the figure from its script
+        I137Figure;
+           
+    % I138, full decay
+    elseif (strcmpi(nucliide,'I138')==1)
+        % activity calculation
+        finalamnt = startingActy*exp(-(log(2)/6.23)*timeDur);
+        msgbox(sprintf('The final activity of %s is %.3e.\n', ...
+            nucliide,finalamnt),'Final Activity');
+        
+        % call the figure from its script
+        I138Figure;
+    end
+
+% User selected probabilistic decay and no full decay    
+elseif (strcmpi(fullDecay,'no')==1 && strcmpi(probDecay,'yes')==1)
+    % get our random values
+    r = 1+99*rand(1);
+    set(yek,'Visible','on');
+
+    % Sm137, proabilistic decay
+    if (strcmpi(nucliide,'SM137')==1)
+        % activity calculation
+        finalamnt = startingActy*exp(-(log(2)/45)*timeDur);
+        msgbox(sprintf(['The final activity of %s is %.3e.\n There was' ...
+            ' a 100%% chance of this decay'],nucliide,finalamnt), ...
+            'Final Activity');
+        
+        % call the figure from its script
+        Sm137Figure;
     
-    text((-0.06+tpnt(1)),(0.18+tpnt(2)),'^{138}I','FontSize',16,'FontWeight','bold');
-    text((-0.06+tpnt(1)),(0.25+bpnt(2)),'137_{Xe}','FontSize',16,'FontWeight','bold');
-    text((-0.06+tpnt(1)),2.15*(0.25+bpnt(2)),'137-Cs','FontSize',16,'FontWeight','bold');
-    text((-0.06+tpnt(1)),3.25*(0.25+bpnt(2)),'137Ba','FontSize',14,'FontWeight','bold');
-    text((0.94+tpnt(1)),(0.25+bpnt(2)),'^{138}Xe','FontSize',16,'FontWeight','bold');
-    text((0.96+tpnt(1)),2.15*(0.25+bpnt(2)),'138Cs','FontSize',16,'FontWeight','bold');
-    text((0.96+tpnt(1)),3.25*(0.25+bpnt(2)),'138Ba','FontSize',14,'FontWeight','bold');
+    % I137, proabilistic decay to Xe137
+    elseif (strcmpi(nucliide,'I137')==1 && r <= 93)
+        % activity calculation
+        finalamnt = startingActy*exp(-(log(2)/24.5)*timeDur);
+        msgbox(sprintf(['The final activity of %s is %.3e.\n There was ' ...
+            'a 93%% chance of this decay occurring.'],nucliide,finalamnt) ...
+            ,'Final Activity');
+        
+        % call the figure from its script
+        I137toXe137;
+                    
+    % I137, probabilistic decay to Xe136
+    elseif (strcmpi(nucliide,'I137')==1 && r > 93)
+        % activity calculation
+        finalamnt = startingActy*exp(-(log(2)/24.5)*timeDur);
+        msgbox(sprintf(['The final activity of %s is %.3e.\n There was ' ...
+            'a 7%% chance of this decay occurring.'],nucliide,finalamnt) ...
+            ,'Final Activity');
+        
+        % call the figure from its script
+        I137toXe136;
+
+    % I138, probabilistic decay to Xe138
+    elseif (strcmpi(nucliide,'I138')==1 && r <= 95)
+        % activity calculation
+        finalamnt = startingActy*exp(-(log(2)/6.23)*timeDur);
+        msgbox(sprintf(['The final activity of %s is %.3e.\n There was ' ...
+            'a 95%% chance of this decay occurring.'],nucliide,finalamnt) ...
+            ,'Final Activity');
+        
+        % call the figure from its script
+        I138toXe138;
+
+    % I138, probabilistic decay to Xe137
+    elseif (strcmpi(nucliide,'I138')==1 && r > 95)
+        % activity calculation
+        finalamnt = startingActy*exp(-(log(2)/6.23)*timeDur);
+        msgbox(sprintf(['The final activity of %s is %.3e.\n There was ' ...
+            'a 5%% chance of this decay occurring.'],nucliide,finalamnt) ...
+            ,'Final Activity');
+
+        % call the figure from its script
+        I138toXe137
+    end
+
+% User selected both full decay and probabilistic decay
+elseif (strcmpi(fullDecay,'yes')==1 && strcmpi(probDecay,'yes')==1)
+    % Get our random value
+    r = 1+99*rand(1);
+    % Going to need both figures, so make them visible
+    set(yek,'Visible','on');
+    set(yek2,'Visible','on');
+
+    % Sm137, there's only one decay chain
+    if (strcmpi(nucliide,'SM137')==1)
+        set(yek2,'Visible','off');
+        % activity calculation
+        finalamnt = startingActy*exp(-(log(2)/45)*timeDur);
+        msgbox(sprintf(['The final activity of %s is %.3e.\n There was ' ...
+            'a 100%% chance of this decay occurring.'],nucliide,finalamnt) ...
+            ,'Final Activity');
+        
+        % figure generation
+        Sm137Figure;
+
+    % I137, full decay and probabilistic decay to Xe137
+    elseif (strcmpi(nucliide,'I137')==1 && r <= 93)
+        % activity calculation
+        finalamnt = startingActy*exp(-(log(2)/24.5)*timeDur);
+        msgbox(sprintf(['The final activity of %s is %.3e.\n There was ' ...
+            'a 93%% chance of this decay occurring.'],nucliide,finalamnt) ...
+            ,'Final Activity');
+        
+        % call figures from their scripts
+        I137Figure;
+        I137toXe137;
+
+    % I137, full decay and probabilistic decay to Xe136
+    elseif (strcmpi(nucliide,'I137')==1 && r > 93)
+        % activity calculation
+        finalamnt = startingActy*exp(-(log(2)/24.5)*timeDur);
+        msgbox(sprintf(['The final activity of %s is %.3e.\n There was ' ...
+            'a 7%% chance of this decay occurring.'],nucliide,finalamnt) ...
+            ,'Final Activity');
+        
+        % call figures from their scripts
+        I137Figure;
+        I137toXe136;
+
+    % I138, full decay and probabilistic decay to Xe138
+    elseif (strcmpi(nucliide,'I138')==1 && r <= 95)
+        % activity calculation
+        finalamnt = startingActy*exp(-(log(2)/6.23)*timeDur);
+        msgbox(sprintf(['The final activity of %s is %.3e.\n There was ' ...
+            'a 95%% chance of this decay occurring.'],nucliide,finalamnt) ...
+            ,'Final Activity');
+        
+        % call figures from their scripts
+        I138Figure;
+        I138toXe138
+
+    % I138, full decay and probabilistic decay to Xe137    
+    elseif (strcmpi(nucliide,'I138')==1 && r > 95)
+        % activity calculation
+        finalamnt = startingActy*exp(-(log(2)/6.23)*timeDur);
+        msgbox(sprintf(['The final activity of %s is %.3e.\n There was ' ...
+            'a 5%% chance of this decay occurring.'],nucliide,finalamnt) ...
+            ,'Final Activity');
+        
+        % call figures from their scripts
+        I138Figure;
+        I138toXe137;
+        
+    end
+
 end
-
 
 % end of function
 end
